@@ -20,6 +20,8 @@
             <cm:property name="elasticIndexStrategy" value="monthly" />
             <cm:property name="defaultMaxTotalConnectionPerRoute" value="-1" />
             <cm:property name="maxTotalConnection" value="-1" />
+            <cm:property name="nodeDiscovery" value="false" />
+            <cm:property name="nodeDiscoveryFrequency" value="0" />
             <!-- TODO MVR add more -->
         </cm:default-properties>
     </cm:property-placeholder>
@@ -31,6 +33,8 @@
         <argument value="${elasticPassword}"/>
         <property name="defaultMaxTotalConnectionPerRoute" value="${defaultMaxTotalConnectionPerRoute}"/>
         <property name="maxTotalConnection" value="${maxTotalConnection}"/>
+        <property name="discovery" value="${nodeDiscovery}" />
+        <property name="discoveryFrequency" value="${nodeDiscoveryFrequency}" />
     </bean>
 
     <!-- Actually creates the client, but only once -->
