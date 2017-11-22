@@ -56,6 +56,7 @@ The following configuration properties can be set:
 | _elasticIndexStrategy_ | Index strategy for data, allowed values _yearly_, _monthly_, _daily_, _hourly_                                                      | optional | `daily`
 | _elasticUser_          | User name in when link:https://www.elastic.co/guide/en/x-pack/current/setting-up-authentication.html[X-Pack Security] is configured | optional | -
 | _elasticPassword_      | Password in when _X-Pack Security_ is configured                                                                                    | optional | -
+| _retryCooldown_        | Defines the cooldown in ms to wait before retrying. Value of `0` means no cooldown. Value must be >= `0`.                           | optional | `500`
 |===
 
 The configuration properties will be stored in `${OPENNMS_HOME}/etc/org.opennms.features.flows.persistence.elastic.cfg`.

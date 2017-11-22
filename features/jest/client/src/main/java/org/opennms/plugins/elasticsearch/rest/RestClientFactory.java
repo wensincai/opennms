@@ -36,7 +36,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import org.apache.http.HttpHost;
+import org.opennms.plugins.elasticsearch.rest.executors.DefaultRequestExecutor;
+import org.opennms.plugins.elasticsearch.rest.executors.RequestExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -46,9 +53,6 @@ import io.searchbox.client.AbstractJestClient;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
-import org.apache.http.HttpHost;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This factory wraps the {@link JestClientFactory} to provide instances of
@@ -71,6 +75,11 @@ public class RestClientFactory {
 	private int m_timeout = 0;
 	private int m_retries = 0;
 	private JestClient client;
+	private Supplier<RequestExecutor> requestExecutorSupplier = () -> new DefaultRequestExecutor(m_timeout, m_retries);
+
+	public RestClientFactory(final String elasticSearchURL) throws MalformedURLException {
+		this(elasticSearchURL, null, null);
+	}
 
 	/**
 	 * Create a RestClientFactory.
@@ -208,11 +217,21 @@ public class RestClientFactory {
 		clientConfigBuilder.maxConnectionIdleTime(timeout, unit);
 	}
 
+	public void setRequestExecutorFactory(RequestExecutorFactory requestExecutorFactory) {
+		this.requestExecutorSupplier = () -> requestExecutorFactory.createExecutor(m_timeout, m_retries);
+	}
+
+	public void setRequestExecutorSupplier(Supplier<RequestExecutor> requestExecutorSupplier) {
+		this.requestExecutorSupplier = requestExecutorSupplier;
+	}
+
 	public JestClient createClient() {
 		if (this.client == null) {
-			JestClientFactory factory = new JestClientFactory();
+			final JestClientFactory factory = new JestClientFactory();
 			factory.setHttpClientConfig(this.clientConfigBuilder.build());
-			this.client = new OnmsJestClient(factory.getObject(), m_timeout, m_retries);
+
+			final RequestExecutor executor = requestExecutorSupplier.get();
+			this.client = new OnmsJestClient(factory.getObject(), executor);
 		}
 		return this.client;
 	}
@@ -226,5 +245,4 @@ public class RestClientFactory {
 		}
 		return Collections.emptyList();
 	}
-
 }
