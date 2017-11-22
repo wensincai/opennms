@@ -105,19 +105,21 @@ public class ElasticFlowRepository implements FlowRepository {
 
     private <T extends JestResult> T executeRequest(Action<T> clientRequest) throws FlowException {
         try {
-            final T result = client.execute(clientRequest);
+            T result = client.execute(clientRequest);
             return result;
-        } catch (IOException e) {
-            throw new FlowException("Error executing query", e);
+        } catch (IOException ex) {
+            LOG.error("An error occurred while executing the given request: {}", clientRequest, ex);
+            throw new FlowException(ex.getMessage(), ex);
         }
     }
 
     private SearchResult search(String query) throws FlowException {
         final SearchResult result = executeRequest(new Search.Builder(query)
                 .addType("flow")
+                .ignoreUnavailable(true)
                 .build());
         if (!result.isSucceeded()) {
-            LOG.error("Error reading flows {}", result.getErrorMessage());
+            LOG.error("Error reading flows. Query: {}, error message: {}", query, result.getErrorMessage());
             throw new QueryException("Could not read flows from repository. " + result.getErrorMessage());
         }
         return result;

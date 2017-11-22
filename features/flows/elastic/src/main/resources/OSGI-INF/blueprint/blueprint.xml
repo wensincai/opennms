@@ -25,12 +25,14 @@
     </cm:property-placeholder>
 
     <!-- Proxy for the JestClientFactory -->
+    <bean id="flowRequestExecutorFactory" class="org.opennms.netmgt.flows.elastic.FlowRequestExecutor"/>
     <bean id="clientFactory" class="org.opennms.plugins.elasticsearch.rest.RestClientFactory">
         <argument value="${elasticUrl}"/>
         <argument value="${elasticUser}"/>
         <argument value="${elasticPassword}"/>
         <property name="defaultMaxTotalConnectionPerRoute" value="${defaultMaxTotalConnectionPerRoute}"/>
         <property name="maxTotalConnection" value="${maxTotalConnection}"/>
+        <property name="requestExecutorFactory" ref="flowRequestExecutorFactory" />
     </bean>
 
     <!-- Actually creates the client, but only once -->

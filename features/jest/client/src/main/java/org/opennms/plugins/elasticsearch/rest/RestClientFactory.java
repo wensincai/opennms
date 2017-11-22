@@ -47,6 +47,8 @@ import io.searchbox.client.JestClient;
 import io.searchbox.client.JestClientFactory;
 import io.searchbox.client.config.HttpClientConfig;
 import org.apache.http.HttpHost;
+import org.opennms.plugins.elasticsearch.rest.executors.DefaultRequestExecutor;
+import org.opennms.plugins.elasticsearch.rest.executors.RequestExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,6 +73,11 @@ public class RestClientFactory {
 	private int m_timeout = 0;
 	private int m_retries = 0;
 	private JestClient client;
+	private RequestExecutorFactory requestExecutorFactory = (timeout, retryCount) -> new DefaultRequestExecutor(timeout, retryCount);
+
+	public RestClientFactory(final String elasticSearchURL) throws MalformedURLException {
+		this(elasticSearchURL, null, null);
+	}
 
 	/**
 	 * Create a RestClientFactory.
@@ -208,11 +215,17 @@ public class RestClientFactory {
 		clientConfigBuilder.maxConnectionIdleTime(timeout, unit);
 	}
 
+	public void setRequestExecutorFactory(RequestExecutorFactory requestExecutorFactory) {
+		this.requestExecutorFactory = requestExecutorFactory;
+	}
+
 	public JestClient createClient() {
 		if (this.client == null) {
-			JestClientFactory factory = new JestClientFactory();
+			final JestClientFactory factory = new JestClientFactory();
 			factory.setHttpClientConfig(this.clientConfigBuilder.build());
-			this.client = new OnmsJestClient(factory.getObject(), m_timeout, m_retries);
+
+			final RequestExecutor executor = requestExecutorFactory.createExecutor(m_timeout, m_retries);
+			this.client = new OnmsJestClient(factory.getObject(), executor);
 		}
 		return this.client;
 	}
@@ -226,5 +239,4 @@ public class RestClientFactory {
 		}
 		return Collections.emptyList();
 	}
-
 }

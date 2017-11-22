@@ -26,57 +26,37 @@
  *     http://www.opennms.com/
  *******************************************************************************/
 
-package org.opennms.plugins.elasticsearch.rest;
+package org.opennms.netmgt.flows.elastic;
 
 import java.io.IOException;
-import java.util.Objects;
-import java.util.Set;
 
+import org.opennms.plugins.elasticsearch.rest.RequestExecutorFactory;
 import org.opennms.plugins.elasticsearch.rest.executors.RequestExecutor;
 
 import io.searchbox.action.Action;
 import io.searchbox.client.JestClient;
 import io.searchbox.client.JestResult;
-import io.searchbox.client.JestResultHandler;
+import io.searchbox.client.config.exception.CouldNotConnectException;
 
-class OnmsJestClient implements JestClient {
+public class FlowRequestExecutor implements RequestExecutor, RequestExecutorFactory {
 
-    private final JestClient m_delegate;
-
-    private final RequestExecutor m_requestExecutor;
-
-    public OnmsJestClient(JestClient delegate, RequestExecutor requestExecutor) {
-        m_delegate = Objects.requireNonNull(delegate);
-        m_requestExecutor = Objects.requireNonNull(requestExecutor);
+    @Override
+    public <T extends JestResult> T execute(JestClient client, Action<T> clientRequest) {
+        try {
+            T result = client.execute(clientRequest);
+            return result;
+        } catch (CouldNotConnectException connectException) {
+            return execute(client, clientRequest);
+        } catch (IOException ex) {
+            return execute(client, clientRequest);
+        } catch (com.google.gson.JsonSyntaxException gsonException) {
+            return execute(client, clientRequest);
+        }
     }
 
     @Override
-    public <T extends JestResult> T execute(Action<T> clientRequest) throws IOException {
-        final T result = m_requestExecutor.execute(m_delegate, clientRequest);
-        return result;
-    }
-
-    @Override
-    public <T extends JestResult> void executeAsync(Action<T> clientRequest, JestResultHandler<? super T> jestResultHandler) {
-        m_delegate.executeAsync(clientRequest, jestResultHandler);
-    }
-
-    /**
-     * @deprecated Use {@link #close()} instead.
-     */
-    @Deprecated
-    @Override
-    public void shutdownClient() {
-        m_delegate.shutdownClient();
-    }
-
-    @Override
-    public void setServers(Set<String> servers) {
-        m_delegate.setServers(servers);
-    }
-
-    @Override
-    public void close() throws IOException {
-        m_delegate.close();
+    public RequestExecutor createExecutor(int timeout, int retryCount) {
+        return new FlowRequestExecutor();
     }
 }
+
