@@ -20,14 +20,14 @@
         <!-- if you want to include resources in the distribution -->
         <resources>
             <resource>
-                <directory>src/main/resources</directory>
+                <directory>${project.basedir}/src/main/resources</directory>
                 <filtering>false</filtering>
                 <includes>
                     <include>**/*</include>
                 </includes>
             </resource>
             <resource>
-                <directory>src/main/filtered-resources</directory>
+                <directory>${project.basedir}/src/main/filtered-resources</directory>
                 <filtering>true</filtering>
                 <includes>
                     <include>**/*</include>
