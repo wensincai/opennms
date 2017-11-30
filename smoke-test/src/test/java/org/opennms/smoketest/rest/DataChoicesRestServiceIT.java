@@ -28,14 +28,9 @@
 
 package org.opennms.smoketest.rest;
 
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.when;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.opennms.smoketest.OpenNMSSeleniumTestCase;
-
-import io.restassured.RestAssured;
 
 public class DataChoicesRestServiceIT extends OpenNMSSeleniumTestCase {
 
