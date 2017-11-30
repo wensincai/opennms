@@ -136,17 +136,19 @@
     </sql>
     <!-- Delete duplicate entries except the newest -->
     <sql>
-      DELETE FROM memos WHERE id IN (
-      SELECT id
-      FROM memos
-      WHERE reductionkey IN (
-      SELECT reductionkey
+      WITH merged_memos AS (
+      SELECT reductionkey, MAX(updated) as max_updated
       FROM memos
       WHERE reductionkey IS NOT NULL
       GROUP BY reductionkey
       HAVING count(*) > 1
-      ) ORDER BY updated DESC OFFSET 1
       )
+      DELETE from memos where id in (
+      SELECT memos.id
+      FROM memos
+      JOIN merged_memos ON memos.reductionkey = merged_memos.reductionkey
+      WHERE memos.reductionkey = merged_memos.reductionkey AND memos.updated < merged_memos.max_updated
+      );
     </sql>
     <!-- Add constraint to prevent duplicate entries in the future -->
     <addUniqueConstraint tableName="memos" columnNames="reductionkey, type" />
